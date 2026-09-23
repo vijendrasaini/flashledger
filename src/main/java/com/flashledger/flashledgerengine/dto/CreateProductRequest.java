@@ -15,6 +15,6 @@ public class CreateProductRequest {
     @Size(min = 3, max = 100)
     private String name;
 
-    @Min(1)
+    @Min(value = 1)
     private int price;    
 }

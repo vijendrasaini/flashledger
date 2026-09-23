@@ -3,10 +3,11 @@ spring:
     name: flash ledger
 
   datasource:
-    url: jdbc:mysql://localhost:3307/flashledger
+#    url: jdbc:mysql://localhost:3307/flashledger
+    url: jdbc:mysql://localhost:3306/flashledger
     username: root
     password: root
 
-# logging:
-#   level:
-#     org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener: OFF
+logging:
+  level:
+    root: INFO

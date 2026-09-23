@@ -16,7 +16,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional 
-    public void createProduct(CreateProductRequest request) {
+    public ProductDTO createProduct(CreateProductRequest request) {
         ProductEntity productEntity = new ProductEntity();
         productEntity.setName(request.getName());
         productEntity.setPrice(request.getPrice());
@@ -25,8 +25,10 @@ public class ProductService {
         return toProduct(saved);
     }
 
-	private Object toProduct(ProductEntity productEntity) { 
+	private ProductDTO toProduct(ProductEntity productEntity) {
         ProductDTO productDTO = new ProductDTO();
         productDTO.setId(productEntity.getId());
+        productDTO.setPrice(productEntity.getPrice());
+        return productDTO;
 	}
 }

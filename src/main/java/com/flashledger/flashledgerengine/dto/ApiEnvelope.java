@@ -13,8 +13,8 @@ public class ApiEnvelope {
     private boolean success;
     private int statusCode;
     private String message;
-    private Map<String, Object> data;
-    private Map<String, Object> errors;
+    private Object data;
+    private Object errors;
 
     public static ApiEnvelope ok(String message) {
         return new ApiEnvelope(true, 200, message, null, null);
@@ -26,6 +26,14 @@ public class ApiEnvelope {
 
     public static ApiEnvelope ok(String message, Map<String, Object> data) {
         return new ApiEnvelope(true, 200, message, data, null);
+    }
+
+    public static ApiEnvelope create(String message, Object data) {
+        return new ApiEnvelope(true, 201, message, data, null);
+    }
+
+    public static ApiEnvelope serverError(String message) {
+        return new ApiEnvelope(false, 500, message, null, null);
     }
 
     public static ApiEnvelope notFound(String message) {
