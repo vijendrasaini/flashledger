@@ -24,7 +24,7 @@ public class ApiEnvelope {
         return new ApiEnvelope(true, statusCode, message, null, null);
     }
 
-    public static ApiEnvelope ok(String message, Map<String, Object> data) {
+    public static ApiEnvelope ok(String message, Object data) {
         return new ApiEnvelope(true, 200, message, data, null);
     }
 

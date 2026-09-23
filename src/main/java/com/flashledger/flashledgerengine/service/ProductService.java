@@ -10,6 +10,8 @@ import com.flashledger.flashledgerengine.dto.CreateProductRequest;
 import com.flashledger.flashledgerengine.dto.ProductDTO;
 import com.flashledger.flashledgerengine.entity.ProductEntity;
 
+import java.util.List;
+
 @Service 
 @AllArgsConstructor 
 public class ProductService {
@@ -25,10 +27,15 @@ public class ProductService {
         return toProduct(saved);
     }
 
+    public List<ProductDTO> getAll() {
+        return productRepository.findAll().stream().map(this::toProduct).toList();
+    }
+
 	private ProductDTO toProduct(ProductEntity productEntity) {
         ProductDTO productDTO = new ProductDTO();
         productDTO.setId(productEntity.getId());
         productDTO.setPrice(productEntity.getPrice());
+        productDTO.setName(productEntity.getName());
         return productDTO;
 	}
 }

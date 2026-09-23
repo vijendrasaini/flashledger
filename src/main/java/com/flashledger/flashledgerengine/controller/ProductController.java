@@ -23,7 +23,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<ApiEnvelope> get() {
-        return ok("Products fetched successfully.", Map.of("products", Collections.emptyList()));
+        return ok("Products fetched successfully.", productService.getAll());
     }
 
     @GetMapping("/{productId}")
@@ -36,7 +36,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiEnvelope.create("Product created successfully", productService.createProduct(request)));
     }
 
-    private ResponseEntity<ApiEnvelope> ok(String message, Map<String, Object> data) {
+    private ResponseEntity<ApiEnvelope> ok(String message, Object data) {
         return ResponseEntity.ok(ApiEnvelope.ok(message, data));
     }
 }
