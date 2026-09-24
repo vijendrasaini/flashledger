@@ -12,8 +12,8 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Inte
     @Modifying
     @Query("""
         UPDATE InventoryEntity i
-        SET i.quantity = :quantity
-        WHERE i.product = :productId
+        SET i.quantity = i.quantity - :quantity
+        WHERE i.product.id = :productId
     """)
-    int decrementQuantity(@Param("quantity") int quantity, @Param("productId") int productId);
+    int decrementQuantity(@Param("productId") int productId, @Param("quantity") int quantity);
 }

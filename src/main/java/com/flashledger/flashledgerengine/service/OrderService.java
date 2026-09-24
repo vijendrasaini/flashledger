@@ -1,20 +1,18 @@
 package com.flashledger.flashledgerengine.service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import com.flashledger.flashledgerengine.dto.CreateOrderRequest;
-import com.flashledger.flashledgerengine.entity.InventoryEntity;
-import com.flashledger.flashledgerengine.entity.OrderItemEntity;
-import com.flashledger.flashledgerengine.entity.ProductEntity;
-import com.flashledger.flashledgerengine.repository.InventoryRepository;
-import com.flashledger.flashledgerengine.repository.ProductRepository;
+import com.flashledger.flashledgerengine.entity.*;
+import com.flashledger.flashledgerengine.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import com.flashledger.flashledgerengine.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 
 
-import com.flashledger.flashledgerengine.entity.OrderEntity;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service 
@@ -23,6 +21,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
+    private static Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     public List<OrderEntity> getAllOrder() {
         return orderRepository.findAll();
@@ -30,31 +31,54 @@ public class OrderService {
 
     @Transactional
     public void createOrder(CreateOrderRequest request) {
+        logger.info("Creating order.....");
         int productId = request.getProductId();
         Optional<ProductEntity> productOp = productRepository.findById(productId);
         if(productOp.isEmpty()) {
-            throw new RuntimeException("Internal error!");
+            throw new NoSuchElementException("Invalid product id");
         }
 
         ProductEntity product = productOp.get();
+        Optional<UserEntity> userOp = userRepository.findById(request.getUserId());
+        if(userOp.isEmpty()) {
+            throw new NoSuchElementException("Invalid user id");
+        }
+
+        UserEntity user = userOp.get();
+        logger.info("Checking inventory.....");
         InventoryEntity found = inventoryRepository.getByProductId(productId);
+        if(found == null) {
+            throw new NoSuchElementException("Inventory does not have product: %s".formatted(product.getName()));
+        }
+
         if(found.getQuantity() < 1) {
             throw new RuntimeException("Product is out of the stock!");
         }
 
-        int updateCount = inventoryRepository.decrementQuantity(productId, found.getQuantity() - 1);
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+            logger.error("some issue with thread", e);
+        }
+
+        logger.info("Updating inventory.....");
+        int updateCount = inventoryRepository.decrementQuantity(productId, 1);
         if(updateCount != 1) {
             throw new RuntimeException("Internal error!");
         }
 
+        logger.info("preparing Order object ...");
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setId(request.getUserId());
+        orderEntity.setUser(user);
         OrderEntity savedOrder = orderRepository.save(orderEntity);
+        logger.info("Saved Order object ...");
 
+        logger.info("preparing Order Item object ...");
         int orderId = savedOrder.getId();
         OrderItemEntity orderItem = new OrderItemEntity();
         orderItem.setOrder(savedOrder);
         orderItem.setProduct(product);
-        orderRepository.save(orderEntity);
+        orderItemRepository.save(orderItem);
+        logger.info("saved Order Item object ...");
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHander {
@@ -24,9 +25,16 @@ public class GlobalExceptionHander {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(new ApiEnvelope(false, 422, "Validation Failed", null, errors));
     }
 
+    @ExceptionHandler(NoSuchElementException.class)
+    ResponseEntity<ApiEnvelope> handleNoSuchElementException(NoSuchElementException exception) {
+        String message = exception.getMessage().isEmpty() ? "Resource not found!" : exception.getMessage();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiEnvelope(false, 404, message, null, null));
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiEnvelope> handleException(Exception exception) {
         logger.error("Exception: ", exception);
-        return ResponseEntity.internalServerError().body(ApiEnvelope.serverError("Internal error"));
+        String message = exception.getMessage().isEmpty() ? "Internal error!" : exception.getMessage();
+        return ResponseEntity.internalServerError().body(ApiEnvelope.serverError(message));
     }
 }
