@@ -74,7 +74,6 @@ public class OrderService {
         logger.info("Saved Order object ...");
 
         logger.info("preparing Order Item object ...");
-        int orderId = savedOrder.getId();
         OrderItemEntity orderItem = new OrderItemEntity();
         orderItem.setOrder(savedOrder);
         orderItem.setProduct(product);
