@@ -6,16 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "order_items")
 @NoArgsConstructor
 @Getter
 @Setter
-public class UserEntity {
+public class OrderItemEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private OrderEntity order;
 
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private ProductEntity product;
 }
