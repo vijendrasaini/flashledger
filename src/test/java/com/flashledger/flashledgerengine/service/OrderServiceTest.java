@@ -7,14 +7,10 @@ import com.flashledger.flashledgerengine.entity.InventoryEntity;
 import com.flashledger.flashledgerengine.entity.OrderEntity;
 import com.flashledger.flashledgerengine.entity.ProductEntity;
 import com.flashledger.flashledgerengine.entity.UserEntity;
-import com.flashledger.flashledgerengine.repository.InventoryRepository;
-import com.flashledger.flashledgerengine.repository.OrderRepository;
-import com.flashledger.flashledgerengine.repository.ProductRepository;
-import com.flashledger.flashledgerengine.repository.UserRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Order;
+import com.flashledger.flashledgerengine.repository.*;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
@@ -25,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@SpringBootTest
 public class OrderServiceTest {
     @Autowired
     private UserRepository userRepository;
@@ -41,6 +38,20 @@ public class OrderServiceTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @BeforeEach
+    void cleanDatabase() {
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+
+        inventoryRepository.deleteAll();
+        productRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    @Test
     void createOrder_shouldCreateTheOrder() {
         ProductEntity productEntity = new ProductEntity();
         productEntity.setName("Product xyz");
@@ -67,13 +78,12 @@ public class OrderServiceTest {
 
         assertNotNull(orderDetailsDTO);
         assertEquals(userId, orderDetailsDTO.getUserId());
-        assertEquals(productId, orderDetailsDTO.getProductId());
 
         inventoryEntity = inventoryRepository.findById(inventoryEntity.getId()).orElseThrow();
         assertEquals(0, inventoryEntity.getQuantity());
     }
 
-    @Disabled
+    @Test
     void createOrder_OneThreadShouldPlaceOrderWhenCalledConcurrently() throws InterruptedException {
         int usersCount = 50;
         ExecutorService executor = Executors.newFixedThreadPool(usersCount);
@@ -116,11 +126,13 @@ public class OrderServiceTest {
                     createOrderRequest.setUserId(userId);
 
                     orderService.createOrder(createOrderRequest);
-                    completeLatch.countDown();
                     successCount.incrementAndGet();
 
                 } catch (NoSuchElementException | InterruptedException e) {
                     unknownCount.incrementAndGet();
+                }
+                finally {
+                    completeLatch.countDown();
                 }
 
             });

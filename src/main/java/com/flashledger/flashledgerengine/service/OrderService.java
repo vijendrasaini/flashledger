@@ -57,7 +57,7 @@ public class OrderService {
         }
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1500);
         } catch (Exception e) {
             logger.error("some issue with thread", e);
         }
@@ -88,8 +88,7 @@ public class OrderService {
         OrderDetailsDTO orderDetailsDTO = new OrderDetailsDTO();
 
         orderDetailsDTO.setId(orderEntity.getId());
-        orderDetailsDTO.setUserId(orderEntity.getId());
-        orderDetailsDTO.setProductId(orderDetailsDTO.getProductId());
+        orderDetailsDTO.setUserId(orderEntity.getUser().getId());
         return orderDetailsDTO;
     }
 }
