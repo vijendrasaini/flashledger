@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import com.flashledger.flashledgerengine.dto.CreateOrderRequest;
+import com.flashledger.flashledgerengine.dto.OrderDetailsDTO;
 import com.flashledger.flashledgerengine.entity.*;
 import com.flashledger.flashledgerengine.repository.*;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void createOrder(CreateOrderRequest request) {
+    public OrderDetailsDTO createOrder(CreateOrderRequest request) {
         logger.info("Creating order.....");
         int productId = request.getProductId();
         Optional<ProductEntity> productOp = productRepository.findById(productId);
@@ -79,5 +80,16 @@ public class OrderService {
         orderItem.setProduct(product);
         orderItemRepository.save(orderItem);
         logger.info("saved Order Item object ...");
+
+        return to(orderEntity);
+    }
+
+    private OrderDetailsDTO to(OrderEntity orderEntity) {
+        OrderDetailsDTO orderDetailsDTO = new OrderDetailsDTO();
+
+        orderDetailsDTO.setId(orderEntity.getId());
+        orderDetailsDTO.setUserId(orderEntity.getId());
+        orderDetailsDTO.setProductId(orderDetailsDTO.getProductId());
+        return orderDetailsDTO;
     }
 }
