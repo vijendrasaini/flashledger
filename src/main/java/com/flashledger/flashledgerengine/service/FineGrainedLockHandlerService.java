@@ -2,11 +2,9 @@ package com.flashledger.flashledgerengine.service;
 
 import com.flashledger.flashledgerengine.dto.CreateOrderRequest;
 import com.flashledger.flashledgerengine.dto.OrderDetailsDTO;
-import com.flashledger.flashledgerengine.entity.InventoryEntity;
+import com.flashledger.flashledgerengine.exception.ConcurrencyConflictException;
 import com.flashledger.flashledgerengine.repository.InventoryRepository;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,7 @@ public class FineGrainedLockHandlerService {
         try {
             isAcquired = lock.tryLock(3, TimeUnit.SECONDS);
             if(!isAcquired) {
-                throw new RuntimeException("System is busy! Please try again later");
+                throw new ConcurrencyConflictException("System is busy! Please try again later");
             }
 
             return orderService.createOrder(request);

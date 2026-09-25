@@ -7,6 +7,7 @@ import com.flashledger.flashledgerengine.entity.InventoryEntity;
 import com.flashledger.flashledgerengine.entity.OrderEntity;
 import com.flashledger.flashledgerengine.entity.ProductEntity;
 import com.flashledger.flashledgerengine.entity.UserEntity;
+import com.flashledger.flashledgerengine.exception.ConcurrencyConflictException;
 import com.flashledger.flashledgerengine.repository.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +128,8 @@ public class OrderServiceTest {
 
                     orderService.createOrder(createOrderRequest);
                     successCount.incrementAndGet();
-
+                } catch (ConcurrencyConflictException e) {
+                    conflictedCount.incrementAndGet();
                 } catch (NoSuchElementException | InterruptedException e) {
                     unknownCount.incrementAndGet();
                 }
