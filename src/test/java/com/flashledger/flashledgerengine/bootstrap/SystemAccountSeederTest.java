@@ -15,6 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SystemAccountSeederTest extends BaseIntegrationTest {
     @Test
     void run_ShouldSeedSystemUserAndAccount_whenDatabaseIsEmpty() {
+        accountRepository.deleteAll();
+        userRepository.deleteAll();
+
         assertEquals(0, userRepository.count());
         assertEquals(0, accountRepository.count());
 

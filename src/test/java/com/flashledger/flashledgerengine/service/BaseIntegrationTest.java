@@ -60,7 +60,10 @@ public class BaseIntegrationTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setName(name);
         userEntity.setEmail(email);
-        return userRepository.save(userEntity);
+        userEntity = userRepository.save(userEntity);
+        // Auto-fund wallet 1,000,00
+        createFundedWallet(userEntity, 100_000);
+        return userEntity;
     }
 
     protected AccountEntity createFundedWallet(UserEntity user, int initialBalance) {
