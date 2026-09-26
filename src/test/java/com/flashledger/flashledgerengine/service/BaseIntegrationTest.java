@@ -1,5 +1,6 @@
 package com.flashledger.flashledgerengine.service;
 
+import com.flashledger.flashledgerengine.bootstrap.SystemAccountSeeder;
 import com.flashledger.flashledgerengine.entity.InventoryEntity;
 import com.flashledger.flashledgerengine.entity.ProductEntity;
 import com.flashledger.flashledgerengine.entity.UserEntity;
@@ -13,8 +14,10 @@ public class BaseIntegrationTest {
     @Autowired protected InventoryRepository inventoryRepository;
     @Autowired protected OrderRepository orderRepository;
     @Autowired protected OrderItemRepository orderItemRepository;
+    @Autowired protected AccountRepository accountRepository;
     @Autowired protected OrderService orderService;
     @Autowired protected FineGrainedLockHandlerService fineGrainedLockHandlerService;
+    @Autowired protected SystemAccountSeeder systemAccountSeeder;
 
     @BeforeEach
     void cleanDatabase() {
@@ -23,6 +26,7 @@ public class BaseIntegrationTest {
 
         inventoryRepository.deleteAll();
         productRepository.deleteAll();
+        accountRepository.deleteAll();
         userRepository.deleteAll();
     }
 

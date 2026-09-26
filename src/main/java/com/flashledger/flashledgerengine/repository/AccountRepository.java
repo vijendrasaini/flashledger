@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<AccountEntity, Integer> {
     Optional<AccountEntity> findByAccountNumber(String accountNumber);
     Optional<AccountEntity> findByUserIdAndAccountType(int userId, AccountType accountType);
+    boolean existsByAccountType(AccountType accountType);
 }
