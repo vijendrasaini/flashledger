@@ -27,40 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
                  "flash-ledger.lock.strategy=bounded-wait"
         }
 )
-public class OrderServiceBoundedWaitTest {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private InventoryRepository inventoryRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private FineGrainedLockHandlerService fineGrainedLockHandlerService;
-
-    @BeforeEach
-    void cleanDatabase() {
-        orderItemRepository.deleteAll();
-        orderRepository.deleteAll();
-
-        inventoryRepository.deleteAll();
-        productRepository.deleteAll();
-        userRepository.deleteAll();
-    }
+public class OrderServiceBoundedWaitTest extends BaseIntegrationTest{
 
     @Test
     void createOrder_shouldQueueThreadsAndRejectWithOutOfStock_whenBoundedWaitConfigured() throws InterruptedException {
+        //Arrange
         int usersCount = 12;
         ExecutorService executor = Executors.newFixedThreadPool(usersCount);
 
@@ -68,30 +39,17 @@ public class OrderServiceBoundedWaitTest {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch completeLatch = new CountDownLatch(usersCount);
 
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setName("Product xyz");
-        productEntity.setPrice(100);
-        productEntity = productRepository.save(productEntity);
+        ProductEntity productEntity = createProductWithInventory("Product xyz", 100, 1);
         int productId = productEntity.getId();
-
-        InventoryEntity inventoryEntity = new InventoryEntity();
-        inventoryEntity.setProduct(productEntity);
-        inventoryEntity.setQuantity(1);
-        inventoryRepository.save(inventoryEntity);
 
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger conflictedCount = new AtomicInteger(0);
         AtomicInteger unknownCount = new AtomicInteger(0);
         AtomicInteger outOfStockCount = new AtomicInteger(0);
 
-
+        //Act
         for(int i = 0; i < usersCount; i++) {
-            UserEntity userEntity = new UserEntity();
-            String name = "User" + (1000 + i);
-            userEntity.setName(name);
-            userEntity.setEmail(name.toLowerCase() + "@test.com");
-            userEntity = userRepository.save(userEntity);
-
+            UserEntity userEntity = createTestUser("Test User"+i, "test"+i+"@test.com");
             int userId = userEntity.getId();
 
             executor.submit(() -> {
@@ -102,7 +60,6 @@ public class OrderServiceBoundedWaitTest {
                     createOrderRequest.setProductId(productId);
                     createOrderRequest.setUserId(userId);
 
-//                    orderService.createOrder(createOrderRequest);
                     fineGrainedLockHandlerService.createOrderSafely(createOrderRequest);
                     successCount.incrementAndGet();
                 } catch (ConcurrencyConflictException e) {
@@ -123,6 +80,7 @@ public class OrderServiceBoundedWaitTest {
         startLatch.countDown();
         completeLatch.await();
 
+        //Assert
         assertEquals(1, successCount.get());
         assertEquals(0, conflictedCount.get());
         assertEquals(usersCount - 1, outOfStockCount.get());

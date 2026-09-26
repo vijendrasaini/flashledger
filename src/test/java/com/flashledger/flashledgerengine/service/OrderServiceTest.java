@@ -24,67 +24,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-public class OrderServiceTest {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private InventoryRepository inventoryRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private FineGrainedLockHandlerService fineGrainedLockHandlerService;
-
-    @BeforeEach
-    void cleanDatabase() {
-        orderItemRepository.deleteAll();
-        orderRepository.deleteAll();
-
-        inventoryRepository.deleteAll();
-        productRepository.deleteAll();
-        userRepository.deleteAll();
-    }
-
+public class OrderServiceTest extends BaseIntegrationTest{
     @Test
     void createOrder_shouldCreateTheOrder() {
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setName("Product xyz");
-        productEntity.setPrice(100);
-        productEntity = productRepository.save(productEntity);
-        int productId = productEntity.getId();
+        //Arrange
+        ProductEntity productEntity = createProductWithInventory("Product xyz", 100, 1);
+        UserEntity userEntity = createTestUser("Test User", "test@test.com");
 
-        InventoryEntity inventoryEntity = new InventoryEntity();
-        inventoryEntity.setProduct(productEntity);
-        inventoryEntity.setQuantity(1);
-        inventoryRepository.save(inventoryEntity);
-
-        UserEntity userEntity = new UserEntity();
-        String name = "User" + 2000;
-        userEntity.setName(name);
-        userEntity.setEmail(name.toLowerCase() + "@test.com");
-        userEntity = userRepository.save(userEntity);
-
-        int userId = userEntity.getId();
+        //Act
         CreateOrderRequest createOrderRequest = new CreateOrderRequest();
-        createOrderRequest.setProductId(productId);
-        createOrderRequest.setUserId(userId);
+        createOrderRequest.setProductId(productEntity.getId());
+        createOrderRequest.setUserId(userEntity.getId());
         OrderDetailsDTO orderDetailsDTO = orderService.createOrder(createOrderRequest);
 
+        //Assert
+        InventoryEntity inventoryEntity = inventoryRepository.findById(inventoryRepository.getByProductId(productEntity.getId()).getId()).orElseThrow();
         assertNotNull(orderDetailsDTO);
-        assertEquals(userId, orderDetailsDTO.getUserId());
-
-        inventoryEntity = inventoryRepository.findById(inventoryEntity.getId()).orElseThrow();
+        assertEquals(userEntity.getId(), orderDetailsDTO.getUserId());
         assertEquals(0, inventoryEntity.getQuantity());
     }
 }
