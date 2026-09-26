@@ -56,13 +56,13 @@ public class BaseIntegrationTest {
 
         return productEntity;
     }
-    protected UserEntity createTestUser(String name, String email) {
+    protected UserEntity createTestUser(String name, String email, int initialBalance) {
         UserEntity userEntity = new UserEntity();
         userEntity.setName(name);
         userEntity.setEmail(email);
         userEntity = userRepository.save(userEntity);
         // Auto-fund wallet 1,000,00
-        createFundedWallet(userEntity, 100_000);
+        createFundedWallet(userEntity, initialBalance);
         return userEntity;
     }
 

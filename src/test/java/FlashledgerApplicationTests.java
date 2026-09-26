@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 class FlashledgerApplicationTests {
 
     @Test
-    @Disabled
     void contextLoads() {
     }
 

@@ -14,5 +14,5 @@ logging:
 
 flash-ledger:
   lock:
-    strategy: fail-fast
+    strategy: bounded-wait
     wait-time-seconds: 3 # will be used only when strategy = 'bounded-wait'

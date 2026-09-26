@@ -29,7 +29,7 @@ public class OrderServiceTest extends BaseIntegrationTest{
     void createOrder_shouldCreateTheOrder() {
         //Arrange
         ProductEntity productEntity = createProductWithInventory("Product xyz", 100, 1);
-        UserEntity userEntity = createTestUser("Test User", "test@test.com");
+        UserEntity userEntity = createTestUser("Test User", "test@test.com", 10000);
 
         //Act
         CreateOrderRequest createOrderRequest = new CreateOrderRequest();

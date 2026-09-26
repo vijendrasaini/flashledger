@@ -18,7 +18,7 @@ public class OrderServiceWithLedgerTest extends BaseIntegrationTest{
     void createOrder_shouldRollbackOrderAndInventory_whenUserHasInsufficientFunds() {
         // Arrange
         ProductEntity product = createProductWithInventory("Mouse", 500000, 10);
-        UserEntity user = createTestUser("Narendra", "narendra@example.com");
+        UserEntity user = createTestUser("Narendra", "narendra@example.com", 100000);
         AccountEntity userWallet = accountRepository.findByUserIdAndAccountType(user.getId(), AccountType.USER_WALLET).orElseThrow();
 
         CreateOrderRequest request = new CreateOrderRequest();
@@ -43,7 +43,7 @@ public class OrderServiceWithLedgerTest extends BaseIntegrationTest{
         AccountEntity systemAccount = accountRepository.findByAccountType(AccountType.SYSTEM_REVENUE).orElseThrow();
 
         ProductEntity product = createProductWithInventory("Keyboard", 60000, 10);
-        UserEntity user = createTestUser("Dakku", "dakku@example.com");
+        UserEntity user = createTestUser("Dakku", "dakku@example.com", 100000);
         AccountEntity userWallet = accountRepository.findByUserIdAndAccountType(user.getId(), AccountType.USER_WALLET).orElseThrow();
 
         CreateOrderRequest request = new CreateOrderRequest();

@@ -49,7 +49,7 @@ public class OrderServiceBoundedWaitTest extends BaseIntegrationTest{
 
         //Act
         for(int i = 0; i < usersCount; i++) {
-            UserEntity userEntity = createTestUser("Test User"+i, "test"+i+"@test.com");
+            UserEntity userEntity = createTestUser("Test User"+i, "test"+i+"@test.com", 100000);
             int userId = userEntity.getId();
 
             executor.submit(() -> {
