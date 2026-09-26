@@ -1,6 +1,6 @@
 spring:
   application:
-    name: flash ledger
+    name: flash-ledger
 
   datasource:
 #    url: jdbc:mysql://localhost:3307/flashledger
@@ -11,3 +11,8 @@ spring:
 logging:
   level:
     root: INFO
+
+flash-ledger:
+  lock:
+    strategy: fail-fast
+    wait-time-seconds: 3 # will be used only when strategy = 'bounded-wait'

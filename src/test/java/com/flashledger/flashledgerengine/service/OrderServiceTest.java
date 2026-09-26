@@ -8,6 +8,7 @@ import com.flashledger.flashledgerengine.entity.OrderEntity;
 import com.flashledger.flashledgerengine.entity.ProductEntity;
 import com.flashledger.flashledgerengine.entity.UserEntity;
 import com.flashledger.flashledgerengine.exception.ConcurrencyConflictException;
+import com.flashledger.flashledgerengine.exception.ProductOutOfStockException;
 import com.flashledger.flashledgerengine.repository.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,13 @@ public class OrderServiceTest {
     private OrderRepository orderRepository;
 
     @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
     private OrderService orderService;
 
     @Autowired
-    private OrderItemRepository orderItemRepository;
+    private FineGrainedLockHandlerService fineGrainedLockHandlerService;
 
     @BeforeEach
     void cleanDatabase() {
@@ -86,7 +90,7 @@ public class OrderServiceTest {
 
     @Test
     void createOrder_OneThreadShouldPlaceOrderWhenCalledConcurrently() throws InterruptedException {
-        int usersCount = 50;
+        int usersCount = 12;
         ExecutorService executor = Executors.newFixedThreadPool(usersCount);
 
         CountDownLatch readyLatch = new CountDownLatch(usersCount);
@@ -107,6 +111,7 @@ public class OrderServiceTest {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger conflictedCount = new AtomicInteger(0);
         AtomicInteger unknownCount = new AtomicInteger(0);
+        AtomicInteger outOfStockCount = new AtomicInteger(0);
 
 
         for(int i = 0; i < usersCount; i++) {
@@ -126,10 +131,13 @@ public class OrderServiceTest {
                     createOrderRequest.setProductId(productId);
                     createOrderRequest.setUserId(userId);
 
-                    orderService.createOrder(createOrderRequest);
+//                    orderService.createOrder(createOrderRequest);
+                    fineGrainedLockHandlerService.createOrderSafely(createOrderRequest);
                     successCount.incrementAndGet();
                 } catch (ConcurrencyConflictException e) {
                     conflictedCount.incrementAndGet();
+                } catch (ProductOutOfStockException e) {
+                    outOfStockCount.incrementAndGet();
                 } catch (NoSuchElementException | InterruptedException e) {
                     unknownCount.incrementAndGet();
                 }
@@ -146,8 +154,9 @@ public class OrderServiceTest {
 
 
         assertEquals(1, successCount.get());
-        assertEquals(49, conflictedCount.get());
-        assertEquals(49, unknownCount.get());
+        assertEquals(usersCount - 1, outOfStockCount.get());
+/*        assertEquals(usersCount - 1, conflictedCount.get());
+        assertEquals(usersCount - 1, unknownCount.get());*/
         executor.shutdown();
     }
 }

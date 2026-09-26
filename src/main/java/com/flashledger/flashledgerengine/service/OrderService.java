@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.flashledger.flashledgerengine.dto.CreateOrderRequest;
 import com.flashledger.flashledgerengine.dto.OrderDetailsDTO;
 import com.flashledger.flashledgerengine.entity.*;
+import com.flashledger.flashledgerengine.exception.ProductOutOfStockException;
 import com.flashledger.flashledgerengine.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,8 @@ public class OrderService {
         }
 
         if(found.getQuantity() < 1) {
-            throw new RuntimeException("Product is out of the stock!");
+            logger.info("Product is out of the stock. Aborting ...");
+            throw new ProductOutOfStockException("Product is out of the stock!");
         }
 
         try {

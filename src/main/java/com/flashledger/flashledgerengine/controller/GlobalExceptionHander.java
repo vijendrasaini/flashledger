@@ -33,7 +33,7 @@ public class GlobalExceptionHander {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiEnvelope> handleException(Exception exception) {
-        logger.error("Exception: ", exception);
+        logger.error("Exception: {}", exception.getMessage());
         String message = exception.getMessage().isEmpty() ? "Internal error!" : exception.getMessage();
         return ResponseEntity.internalServerError().body(ApiEnvelope.serverError(message));
     }
