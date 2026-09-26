@@ -11,4 +11,5 @@ public class OrderDetailsDTO {
     private int id;
     private int userId;
     private int productId;
+    private String txnRefId;
 }

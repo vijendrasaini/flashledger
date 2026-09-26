@@ -1,9 +1,11 @@
 package com.flashledger.flashledgerengine.entity;
 
+import com.flashledger.flashledgerengine.entity.enums.LedgerTransactionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +23,11 @@ public class LedgerTransactionEntity {
     private int orderId;
 
     private String transactionReference;
-    private String status; // need to check learn how to handle db enum column so that for going forward i don't any doubt in any further project
 
+    @Enumerated(EnumType.STRING)
+    private LedgerTransactionStatus status; // need to check learn how to handle db enum column so that for going forward i don't any doubt in any further project
+
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt; // need to learn how to handle created at timestatmp column in detail so that for going forward i don't any doubt in any further project
 }

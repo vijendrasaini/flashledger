@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 @Entity
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 public class LedgerEntryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ledger_transaction_id", nullable = false)
@@ -30,8 +31,9 @@ public class LedgerEntryEntity {
     private EntryType entryType;
 
     @Column(nullable = false)
-    private Long amount; // in paise (e.g. 10000 = ₹100.00)
+    private int amount; // in paise (e.g. 10000 = ₹100.00)
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -22,7 +22,7 @@ public class FineGrainedLockHandlerService {
     private final InventoryRepository inventoryRepository;
     private LockAcquisitionStrategy lockAcquisitionStrategy;
 
-    private static Logger logger = LoggerFactory.getLogger(FineGrainedLockHandlerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FineGrainedLockHandlerService.class);
 
     public OrderDetailsDTO createOrderSafely(CreateOrderRequest request) {
         int productId = request.getProductId();

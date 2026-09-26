@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.flashledger.flashledgerengine.dto.CreateOrderRequest;
 import com.flashledger.flashledgerengine.dto.OrderDetailsDTO;
 import com.flashledger.flashledgerengine.entity.*;
+import com.flashledger.flashledgerengine.exception.InsufficientFundsException;
 import com.flashledger.flashledgerengine.exception.ProductOutOfStockException;
 import com.flashledger.flashledgerengine.repository.*;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
-    private static Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private final LedgerService ledgerService;
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     public List<OrderEntity> getAllOrder() {
         return orderRepository.findAll();
@@ -83,14 +85,23 @@ public class OrderService {
         orderItemRepository.save(orderItem);
         logger.info("saved Order Item object ...");
 
-        return to(orderEntity);
+        // validate if user has sufficient balance
+        int balance = ledgerService.getBalance(user.getId());
+        if(balance < product.getPrice()) {
+            throw new InsufficientFundsException("InSufficient Balance");
+        }
+
+        // create the transaction
+        LedgerTransactionEntity ledgerTransactionEntity = ledgerService.recordTransfer(user.getId(), product.getPrice(), orderEntity.getId(), "Transaction to buy : %s".formatted(product.getName()));
+        return to(orderEntity, ledgerTransactionEntity.getTransactionReference());
     }
 
-    private OrderDetailsDTO to(OrderEntity orderEntity) {
+    private OrderDetailsDTO to(OrderEntity orderEntity, String txnRefId) {
         OrderDetailsDTO orderDetailsDTO = new OrderDetailsDTO();
 
         orderDetailsDTO.setId(orderEntity.getId());
         orderDetailsDTO.setUserId(orderEntity.getUser().getId());
+        orderDetailsDTO.setTxnRefId(txnRefId);
         return orderDetailsDTO;
     }
 }
