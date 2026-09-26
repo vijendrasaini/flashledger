@@ -85,12 +85,6 @@ public class OrderService {
         orderItemRepository.save(orderItem);
         logger.info("saved Order Item object ...");
 
-        // validate if user has sufficient balance
-        int balance = ledgerService.getBalance(user.getId());
-        if(balance < product.getPrice()) {
-            throw new InsufficientFundsException("InSufficient Balance");
-        }
-
         // create the transaction
         LedgerTransactionEntity ledgerTransactionEntity = ledgerService.recordTransfer(user.getId(), product.getPrice(), orderEntity.getId(), "Transaction to buy : %s".formatted(product.getName()));
         return to(orderEntity, ledgerTransactionEntity.getTransactionReference());

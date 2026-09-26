@@ -25,7 +25,7 @@ public class LedgerTransactionEntity {
     private String transactionReference;
 
     @Enumerated(EnumType.STRING)
-    private LedgerTransactionStatus status; // need to check learn how to handle db enum column so that for going forward i don't any doubt in any further project
+    private LedgerTransactionStatus status;
 
     @CreationTimestamp
     @Column(updatable = false)

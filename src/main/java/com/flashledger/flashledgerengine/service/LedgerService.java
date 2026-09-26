@@ -6,25 +6,21 @@ import com.flashledger.flashledgerengine.entity.LedgerTransactionEntity;
 import com.flashledger.flashledgerengine.entity.enums.AccountType;
 import com.flashledger.flashledgerengine.entity.enums.EntryType;
 import com.flashledger.flashledgerengine.entity.enums.LedgerTransactionStatus;
+import com.flashledger.flashledgerengine.exception.InsufficientFundsException;
 import com.flashledger.flashledgerengine.exception.MoneyAccountNotFound;
+import com.flashledger.flashledgerengine.exception.UnbalancedLedgerException;
 import com.flashledger.flashledgerengine.repository.AccountRepository;
 import com.flashledger.flashledgerengine.repository.LedgerEntryRepository;
 import com.flashledger.flashledgerengine.repository.LedgerTransactionRepository;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.id.uuid.UuidGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-@Getter
-@Setter
 public class LedgerService {
     private final LedgerTransactionRepository ledgerTransactionRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
@@ -33,7 +29,7 @@ public class LedgerService {
      * Calculates the dynamic net balance of an account from ledger entries.
      * Formula: SUM(CREDITS) - SUM(DEBITS)
      */
-    int getBalance(int accountId) {
+    public int getBalance(int accountId) {
         return ledgerEntryRepository.calculateBalanceByAccountId(accountId);
     }
     /**
@@ -47,25 +43,32 @@ public class LedgerService {
      */
 
     @Transactional
-    LedgerTransactionEntity recordTransfer(
+    public LedgerTransactionEntity recordTransfer(
             int fromUserId,
             int amount,
             int orderId,
             String description
     ) {
         Optional<AccountEntity> fromAccountOpt = accountRepository.findByUserIdAndAccountType(fromUserId, AccountType.USER_WALLET);
-        Optional<AccountEntity> toAccountOpt = accountRepository.findByUserIdAndAccountType(1, AccountType.SYSTEM_REVENUE);
+        Optional<AccountEntity> toAccountOpt = accountRepository.findByAccountType(AccountType.SYSTEM_REVENUE);
         if (fromAccountOpt.isEmpty() || toAccountOpt.isEmpty()) {
             throw new MoneyAccountNotFound("Account to pay not found!");
         }
 
         AccountEntity fromAccount = fromAccountOpt.get();
         AccountEntity toAccount = toAccountOpt.get();
+
+        // validate if user has sufficient balance
+        int balance = getBalance(fromAccount.getId());
+        if(balance < amount) {
+            throw new InsufficientFundsException("InSufficient Balance");
+        }
+
         LedgerTransactionEntity ledgerTransactionEntity = new LedgerTransactionEntity();
 
-        String txnRefId = "TXN-ORDER-" + UUID.randomUUID();
+        String txnRefId = "TXN-ORDER-" + UUID.randomUUID().toString().substring(0, 6);
         ledgerTransactionEntity.setTransactionReference(txnRefId);
-        ledgerTransactionEntity.setStatus(LedgerTransactionStatus.PENDING);
+        ledgerTransactionEntity.setStatus(LedgerTransactionStatus.STARTED);
         ledgerTransactionEntity.setUserId(fromAccount.getUser().getId());
         ledgerTransactionEntity.setOrderId(orderId);
 
@@ -88,6 +91,10 @@ public class LedgerService {
 
         saved.setStatus(LedgerTransactionStatus.COMMITED);
         saved = ledgerTransactionRepository.save(saved);
+
+        if (debitEntry.getAmount() != creditEntry.getAmount()) {
+            throw new UnbalancedLedgerException("Total debits do not match total credits");
+        }
         return saved;
     }
 }
